@@ -31,6 +31,7 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* Container */
@@ -169,7 +170,7 @@ body {
 
 /* Progress Bar */
 .progress-container {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(66, 40, 64, 0.95);
     backdrop-filter: blur(10px);
     border-radius: 1rem;
     padding: 1.5rem;
@@ -1223,10 +1224,17 @@ html {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure scrolling works on all iOS devices */
+.ios-device * {
+    -webkit-overflow-scrolling: touch;
 }
 
 .ios-device body {
-    overscroll-behavior: none;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .ios-device .flashcard {

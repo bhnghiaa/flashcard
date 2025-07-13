@@ -411,10 +411,13 @@ class FlashcardApp {
                 document.body.classList.add('iphone-13');
             }
 
-            // Prevent bounce effect
+            // Prevent bounce effect on specific elements only
             document.addEventListener('touchmove', (e) => {
-                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                    e.preventDefault();
+                // Only prevent touchmove on flashcard and certain interactive elements
+                if (e.target.closest('.flashcard') || e.target.closest('.modal')) {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                        e.preventDefault();
+                    }
                 }
             }, { passive: false });
         }

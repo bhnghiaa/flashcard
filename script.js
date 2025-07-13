@@ -22,8 +22,6 @@ class FlashcardApp {
         this.loadFromStorage();
         this.bindEvents();
         this.updateDisplay();
-        this.updateStats();
-        this.checkDailyStreak();
         this.setupiOSOptimizations();
     }
 
@@ -39,24 +37,16 @@ class FlashcardApp {
         
         // Modal events
         document.getElementById('addCardBtn').addEventListener('click', () => this.openModal('addCardModal'));
-        document.getElementById('statsBtn').addEventListener('click', () => this.openModal('statsModal'));
         document.getElementById('closeModal').addEventListener('click', () => this.closeModal('addCardModal'));
-        document.getElementById('closeStatsModal').addEventListener('click', () => this.closeModal('statsModal'));
         document.getElementById('cancelBtn').addEventListener('click', () => this.closeModal('addCardModal'));
         
         // Form submission
         document.getElementById('addCardForm').addEventListener('submit', (e) => this.addCard(e));
         
-        // Search and filters
-        document.getElementById('searchInput').addEventListener('input', (e) => this.searchCards(e.target.value));
-        document.getElementById('categoryFilter').addEventListener('change', (e) => this.filterCards());
-        document.getElementById('difficultyFilter').addEventListener('change', (e) => this.filterCards());
+        // Shuffle button
         document.getElementById('shuffleBtn').addEventListener('click', () => this.shuffleCards());
         
-        // Learning actions
-        document.querySelectorAll('.difficulty-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.handleDifficultyFeedback(e.target.dataset.difficulty));
-        });
+
         
         // Audio playback
         document.getElementById('playAudio').addEventListener('click', () => this.playAudio());
@@ -157,36 +147,7 @@ class FlashcardApp {
         document.getElementById('learningActions').style.display = 'none';
     }
 
-    // Search and Filter
-    searchCards(query) {
-        this.filterCards();
-    }
 
-    filterCards() {
-        const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-        const categoryFilter = document.getElementById('categoryFilter').value;
-        const difficultyFilter = document.getElementById('difficultyFilter').value;
-
-        this.filteredCards = this.flashcards.filter(card => {
-            const matchesSearch = !searchQuery || 
-                card.word.toLowerCase().includes(searchQuery) ||
-                card.definition.toLowerCase().includes(searchQuery) ||
-                (card.vietnameseDefinition && card.vietnameseDefinition.toLowerCase().includes(searchQuery)) ||
-                card.example.toLowerCase().includes(searchQuery);
-            
-            const matchesCategory = !categoryFilter || card.category === categoryFilter;
-            const matchesDifficulty = !difficultyFilter || card.difficulty === difficultyFilter;
-            
-            return matchesSearch && matchesCategory && matchesDifficulty;
-        });
-
-        // Reset current index if filtered cards changed
-        if (this.currentCardIndex >= this.filteredCards.length) {
-            this.currentCardIndex = 0;
-        }
-
-        this.updateDisplay();
-    }
 
     shuffleCards() {
         this.filteredCards = this.shuffleArray([...this.filteredCards]);
@@ -234,10 +195,6 @@ class FlashcardApp {
         document.getElementById('currentCard').textContent = this.currentCardIndex + 1;
         document.getElementById('totalCards').textContent = this.filteredCards.length;
         
-        const progressPercentage = ((this.currentCardIndex + 1) / this.filteredCards.length) * 100;
-        document.getElementById('progressFill').style.width = `${progressPercentage}%`;
-        document.getElementById('progressPercentage').textContent = `${Math.round(progressPercentage)}%`;
-        
         // Update navigation buttons
         document.getElementById('prevBtn').disabled = this.filteredCards.length <= 1;
         document.getElementById('nextBtn').disabled = this.filteredCards.length <= 1;
@@ -255,80 +212,11 @@ class FlashcardApp {
         document.getElementById('wordType').textContent = '';
         document.getElementById('currentCard').textContent = '0';
         document.getElementById('totalCards').textContent = '0';
-        document.getElementById('progressFill').style.width = '0%';
-        document.getElementById('progressPercentage').textContent = '0%';
     }
 
-    // Learning System
-    handleDifficultyFeedback(difficulty) {
-        const currentCard = this.filteredCards[this.currentCardIndex];
-        if (!currentCard) return;
 
-        // Update card statistics
-        currentCard.timesStudied++;
-        currentCard.lastStudied = new Date().toISOString();
-        
-        if (difficulty === 'easy') {
-            currentCard.correctCount++;
-            currentCard.difficulty = 'easy';
-        } else if (difficulty === 'medium') {
-            currentCard.correctCount++;
-        } else {
-            currentCard.incorrectCount++;
-            currentCard.difficulty = 'hard';
-        }
 
-        // Update global stats
-        this.stats.totalAnswers++;
-        if (difficulty !== 'hard') {
-            this.stats.correctAnswers++;
-        }
-        this.stats.studiedToday++;
-        this.stats.accuracy = Math.round((this.stats.correctAnswers / this.stats.totalAnswers) * 100);
 
-        this.saveToStorage();
-        this.updateStats();
-        
-        // Move to next card
-        setTimeout(() => {
-            this.nextCard();
-        }, 500);
-    }
-
-    // Statistics
-    updateStats() {
-        this.stats.totalWords = this.flashcards.length;
-        
-        document.getElementById('totalWordsStats').textContent = this.stats.totalWords;
-        document.getElementById('studiedTodayStats').textContent = this.stats.studiedToday;
-        document.getElementById('streakStats').textContent = this.stats.streak;
-        document.getElementById('accuracyStats').textContent = `${this.stats.accuracy}%`;
-    }
-
-    checkDailyStreak() {
-        const today = new Date().toDateString();
-        const lastStudy = localStorage.getItem('lastStudyDate');
-        
-        if (lastStudy === today) {
-            // Already studied today
-            return;
-        }
-        
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        if (lastStudy === yesterday.toDateString()) {
-            // Studied yesterday, continue streak
-            this.stats.streak++;
-        } else if (lastStudy !== today) {
-            // Broke streak or first time
-            this.stats.streak = this.stats.studiedToday > 0 ? 1 : 0;
-        }
-        
-        if (this.stats.studiedToday > 0) {
-            localStorage.setItem('lastStudyDate', today);
-        }
-    }
 
     // Audio
     playAudio() {
@@ -512,17 +400,7 @@ class FlashcardApp {
         }, 3000);
     }
 
-    // Study Mode
-    startStudyMode() {
-        this.studyMode = true;
-        this.shuffleCards();
-        this.showNotification('Study mode started! Rate your knowledge after each card.', 'info');
-    }
 
-    stopStudyMode() {
-        this.studyMode = false;
-        document.getElementById('learningActions').style.display = 'none';
-    }
 }
 
 // Sample data for demonstration
@@ -971,20 +849,12 @@ document.addEventListener('DOMContentLoaded', () => {
         app.filteredCards = [...app.flashcards];
         app.saveToStorage();
         app.updateDisplay();
-        app.updateStats();
     }
     
     // Make app globally accessible for debugging
     window.flashcardApp = app;
     
-    // Add study mode button functionality
-    const studyModeBtn = document.createElement('button');
-    studyModeBtn.textContent = 'Study Mode';
-    studyModeBtn.className = 'btn btn-primary';
-    studyModeBtn.style.marginLeft = '1rem';
-    studyModeBtn.addEventListener('click', () => app.startStudyMode());
-    
-    document.querySelector('.controls').appendChild(studyModeBtn);
+
 });
 
 // Service Worker Registration (for PWA capabilities)

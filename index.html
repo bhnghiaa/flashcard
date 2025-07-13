@@ -27,14 +27,6 @@
                     <i class="fas fa-plus"></i>
                     Add Card
                 </button>
-                <button class="nav-btn" id="statsBtn">
-                    <i class="fas fa-chart-line"></i>
-                    Stats
-                </button>
-                <button class="nav-btn" id="settingsBtn">
-                    <i class="fas fa-cog"></i>
-                    Settings
-                </button>
             </nav>
         </div>
     </header>
@@ -43,24 +35,7 @@
         <div class="container">
             <!-- Control Panel -->
             <div class="control-panel">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search flashcards...">
-                </div>
                 <div class="controls">
-                    <select id="categoryFilter">
-                        <option value="">All Categories</option>
-                        <option value="basic">Basic</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
-                        <option value="toeic">TOEIC</option>
-                    </select>
-                    <select id="difficultyFilter">
-                        <option value="">All Difficulty</option>
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
-                    </select>
                     <button class="btn btn-primary" id="shuffleBtn">
                         <i class="fas fa-shuffle"></i>
                         Shuffle
@@ -70,13 +45,9 @@
 
             <!-- Progress Bar -->
             <div class="progress-container">
-                <div class="progress-info">
+                <div class="card-counter">
                     <span id="currentCard">1</span> / <span id="totalCards">0</span>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-                <div class="progress-percentage" id="progressPercentage">0%</div>
             </div>
 
             <!-- Flashcard Container -->
@@ -128,24 +99,7 @@
                 </button>
             </div>
 
-            <!-- Learning Actions -->
-            <div class="learning-actions" id="learningActions" style="display: none;">
-                <h3>How well did you know this word?</h3>
-                <div class="difficulty-buttons">
-                    <button class="difficulty-btn btn-hard" data-difficulty="hard">
-                        <i class="fas fa-times"></i>
-                        Hard
-                    </button>
-                    <button class="difficulty-btn btn-medium" data-difficulty="medium">
-                        <i class="fas fa-minus"></i>
-                        Medium
-                    </button>
-                    <button class="difficulty-btn btn-easy" data-difficulty="easy">
-                        <i class="fas fa-check"></i>
-                        Easy
-                    </button>
-                </div>
-            </div>
+
         </div>
     </main>
 
@@ -211,37 +165,7 @@
         </div>
     </div>
 
-    <!-- Stats Modal -->
-    <div class="modal" id="statsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Learning Statistics</h2>
-                <button class="close-btn" id="closeStatsModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalWordsStats">0</div>
-                        <div class="stat-label">Total Words</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="studiedTodayStats">0</div>
-                        <div class="stat-label">Studied Today</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="streakStats">0</div>
-                        <div class="stat-label">Day Streak</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="accuracyStats">0%</div>
-                        <div class="stat-label">Accuracy</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Loading Spinner -->
     <div class="loading" id="loading">

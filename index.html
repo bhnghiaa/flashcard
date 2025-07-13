@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>English Flashcards - Learn Vocabulary</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Flashcards">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                English Flashcards
+            </h1>
+            <nav class="nav">
+                <button class="nav-btn" id="addCardBtn">
+                    <i class="fas fa-plus"></i>
+                    Add Card
+                </button>
+                <button class="nav-btn" id="statsBtn">
+                    <i class="fas fa-chart-line"></i>
+                    Stats
+                </button>
+                <button class="nav-btn" id="settingsBtn">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search flashcards...">
+                </div>
+                <div class="controls">
+                    <select id="categoryFilter">
+                        <option value="">All Categories</option>
+                        <option value="basic">Basic</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                        <option value="toeic">TOEIC</option>
+                    </select>
+                    <select id="difficultyFilter">
+                        <option value="">All Difficulty</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                    <button class="btn btn-primary" id="shuffleBtn">
+                        <i class="fas fa-shuffle"></i>
+                        Shuffle
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-info">
+                    <span id="currentCard">1</span> / <span id="totalCards">0</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-percentage" id="progressPercentage">0%</div>
+            </div>
+
+            <!-- Flashcard Container -->
+            <div class="flashcard-container">
+                <div class="flashcard" id="flashcard">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <div class="card-header">
+                                <span class="card-category" id="cardCategory">Basic</span>
+                                <span class="card-difficulty" id="cardDifficulty">Easy</span>
+                            </div>
+                            <div class="card-content">
+                                <div class="word" id="frontWord">Click "Add Card" to start</div>
+                                <div class="pronunciation" id="pronunciation"></div>
+                                <button class="play-audio" id="playAudio">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flashcard-back">
+                            <div class="card-header">
+                                <span class="card-category" id="backCategory">Basic</span>
+                                <span class="card-difficulty" id="backDifficulty">Easy</span>
+                            </div>
+                            <div class="card-content">
+                                <div class="definition" id="backDefinition">Add your first flashcard to begin learning!</div>
+                                <div class="vietnamese-definition" id="vietnameseDefinition"></div>
+                                <div class="example" id="example"></div>
+                                <div class="word-type" id="wordType"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="card-actions">
+                <button class="action-btn btn-secondary" id="prevBtn">
+                    <i class="fas fa-arrow-left"></i>
+                    Previous
+                </button>
+                <button class="action-btn btn-primary flip-btn" id="flipBtn">
+                    <i class="fas fa-rotate"></i>
+                    Flip Card
+                </button>
+                <button class="action-btn btn-secondary" id="nextBtn">
+                    Next
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Learning Actions -->
+            <div class="learning-actions" id="learningActions" style="display: none;">
+                <h3>How well did you know this word?</h3>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-btn btn-hard" data-difficulty="hard">
+                        <i class="fas fa-times"></i>
+                        Hard
+                    </button>
+                    <button class="difficulty-btn btn-medium" data-difficulty="medium">
+                        <i class="fas fa-minus"></i>
+                        Medium
+                    </button>
+                    <button class="difficulty-btn btn-easy" data-difficulty="easy">
+                        <i class="fas fa-check"></i>
+                        Easy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Card Modal -->
+    <div class="modal" id="addCardModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Flashcard</h2>
+                <button class="close-btn" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addCardForm">
+                    <div class="form-group">
+                        <label for="wordInput">Word/Phrase *</label>
+                        <input type="text" id="wordInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pronunciationInput">Pronunciation</label>
+                        <input type="text" id="pronunciationInput" placeholder="e.g., /ˈwɜːrd/">
+                    </div>
+                    <div class="form-group">
+                        <label for="definitionInput">Definition *</label>
+                        <textarea id="definitionInput" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="vietnameseDefinitionInput">Vietnamese Definition</label>
+                        <textarea id="vietnameseDefinitionInput" placeholder="Nghĩa tiếng Việt"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleInput">Example Sentence</label>
+                        <textarea id="exampleInput" placeholder="Example usage of the word"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="categoryInput">Category</label>
+                            <select id="categoryInput">
+                                <option value="basic">Basic</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                                <option value="toeic">TOEIC</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="wordTypeInput">Word Type</label>
+                            <select id="wordTypeInput">
+                                <option value="noun">Noun</option>
+                                <option value="verb">Verb</option>
+                                <option value="adjective">Adjective</option>
+                                <option value="adverb">Adverb</option>
+                                <option value="phrase">Phrase</option>
+                                <option value="idiom">Idiom</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Card</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div class="modal" id="statsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Learning Statistics</h2>
+                <button class="close-btn" id="closeStatsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalWordsStats">0</div>
+                        <div class="stat-label">Total Words</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="studiedTodayStats">0</div>
+                        <div class="stat-label">Studied Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="streakStats">0</div>
+                        <div class="stat-label">Day Streak</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="accuracyStats">0%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 English Flashcards. Made with ❤️ for English learners.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 

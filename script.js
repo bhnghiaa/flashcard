@@ -4,6 +4,7 @@ class FlashcardApp {
         this.flashcards = [];
         this.currentCardIndex = 0;
         this.isFlipped = false;
+        this.isFlipping = false;
         this.filteredCards = [];
         this.studyMode = false;
         this.stats = {
@@ -32,8 +33,35 @@ class FlashcardApp {
         document.getElementById('nextBtn').addEventListener('click', () => this.nextCard());
         document.getElementById('flipBtn').addEventListener('click', () => this.flipCard());
         
-        // Card click to flip
-        document.getElementById('flashcard').addEventListener('click', () => this.flipCard());
+        // Card click to flip (for non-touch devices)
+        document.getElementById('flashcard').addEventListener('click', (e) => {
+            console.log('Flashcard clicked');
+            // Only handle click if it's not from touch
+            if (!('ontouchstart' in window)) {
+                console.log('Handling click (non-touch device)');
+                this.flipCard();
+            } else {
+                console.log('Click ignored (touch device)');
+            }
+        });
+        
+        // Also try pointer events
+        document.getElementById('flashcard').addEventListener('pointerdown', (e) => {
+            console.log('Pointer down:', e.pointerType);
+            if (e.pointerType === 'touch') {
+                console.log('Handling pointer touch');
+                setTimeout(() => this.flipCard(), 100);
+            }
+        });
+        
+        // Mouse events for debugging
+        document.getElementById('flashcard').addEventListener('mousedown', (e) => {
+            console.log('Mouse down detected');
+        });
+        
+        document.getElementById('flashcard').addEventListener('mouseup', (e) => {
+            console.log('Mouse up detected');
+        });
         
         // Modal events
         document.getElementById('addCardBtn').addEventListener('click', () => this.openModal('addCardModal'));
@@ -45,6 +73,12 @@ class FlashcardApp {
         
         // Shuffle button
         document.getElementById('shuffleBtn').addEventListener('click', () => this.shuffleCards());
+        
+        // Test button functionality
+        document.getElementById('flipBtn').addEventListener('touchend', (e) => {
+            console.log('Flip button touched');
+            this.flipCard();
+        });
         
 
         
@@ -128,23 +162,44 @@ class FlashcardApp {
     }
 
     flipCard() {
+        console.log('flipCard() called, isFlipping:', this.isFlipping, 'isFlipped:', this.isFlipped);
+        
+        // Prevent rapid double flips
+        if (this.isFlipping) {
+            console.log('Flip blocked - already flipping');
+            return;
+        }
+        
+        this.isFlipping = true;
         const flashcard = document.getElementById('flashcard');
         this.isFlipped = !this.isFlipped;
         flashcard.classList.toggle('flipped', this.isFlipped);
         
+        console.log('Card flipped to:', this.isFlipped ? 'back' : 'front');
+        
         // Show learning actions when flipped to back
         const learningActions = document.getElementById('learningActions');
         if (this.isFlipped && this.studyMode) {
-            learningActions.style.display = 'block';
+            if (learningActions) learningActions.style.display = 'block';
         } else {
-            learningActions.style.display = 'none';
+            if (learningActions) learningActions.style.display = 'none';
         }
+        
+        // Reset flip protection after animation
+        setTimeout(() => {
+            this.isFlipping = false;
+            console.log('Flip protection reset');
+        }, 600);
     }
 
     resetCardState() {
         this.isFlipped = false;
+        this.isFlipping = false;
         document.getElementById('flashcard').classList.remove('flipped');
-        document.getElementById('learningActions').style.display = 'none';
+        const learningActions = document.getElementById('learningActions');
+        if (learningActions) {
+            learningActions.style.display = 'none';
+        }
     }
 
 
@@ -265,12 +320,22 @@ class FlashcardApp {
         }
     }
 
-    // iOS-specific optimizations
+    // Mobile optimizations
     setupiOSOptimizations() {
-        // Detect iPhone 13 and similar devices
+        // Detect mobile devices
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
         const isIPhone13 = window.screen.width === 390 && window.screen.height === 844;
         
+        // Setup touch handling for all mobile devices
+        if (isMobile || 'ontouchstart' in window) {
+            console.log('Setting up touch handling for mobile device');
+            this.setupTouchHandling();
+        } else {
+            console.log('Desktop device detected, using click events');
+        }
+        
+        // iOS specific optimizations
         if (isIPhone || isIPhone13) {
             // Prevent zoom on input focus
             document.addEventListener('touchstart', (e) => {
@@ -298,17 +363,46 @@ class FlashcardApp {
             if (isIPhone13) {
                 document.body.classList.add('iphone-13');
             }
-
-            // Prevent bounce effect on specific elements only
-            document.addEventListener('touchmove', (e) => {
-                // Only prevent touchmove on flashcard and certain interactive elements
-                if (e.target.closest('.flashcard') || e.target.closest('.modal')) {
-                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                        e.preventDefault();
-                    }
-                }
-            }, { passive: false });
         }
+    }
+
+    setupTouchHandling() {
+        const flashcard = document.getElementById('flashcard');
+        
+        if (!flashcard) {
+            console.error('Flashcard element not found!');
+            return;
+        }
+        
+        console.log('Touch event listeners attached to flashcard', flashcard);
+        console.log('Flashcard computed style:', window.getComputedStyle(flashcard));
+        
+        // Simple tap detection
+        let tapTimeout;
+        let touchStartTime = 0;
+        let touchStartPos = { x: 0, y: 0 };
+        
+        flashcard.addEventListener('touchstart', (e) => {
+            console.log('Touch start detected on:', e.target);
+            touchStartTime = Date.now();
+            touchStartPos.x = e.touches[0].clientX;
+            touchStartPos.y = e.touches[0].clientY;
+            
+            // Clear any existing timeout
+            clearTimeout(tapTimeout);
+        }, { passive: true });
+        
+        flashcard.addEventListener('touchend', (e) => {
+            console.log('Touch end detected on:', e.target);
+            const touchEndTime = Date.now();
+            const touchDuration = touchEndTime - touchStartTime;
+            
+            // If it's a quick tap (less than 300ms), flip the card
+            if (touchDuration < 300) {
+                console.log('Quick tap detected, flipping card');
+                this.flipCard();
+            }
+        }, { passive: true });
     }
 
     // Modal Management
@@ -843,16 +937,116 @@ const sampleFlashcards = [
 document.addEventListener('DOMContentLoaded', () => {
     const app = new FlashcardApp();
     
-    // Load sample data if no cards exist
-    if (app.flashcards.length === 0) {
-        app.flashcards = sampleFlashcards;
-        app.filteredCards = [...app.flashcards];
-        app.saveToStorage();
-        app.updateDisplay();
-    }
+            // Load sample data if no cards exist
+        if (app.flashcards.length === 0) {
+            app.flashcards = sampleFlashcards;
+            app.filteredCards = [...app.flashcards];
+            app.saveToStorage();
+            app.updateDisplay();
+        }
+        
+        // Show instruction for mobile users
+        if ('ontouchstart' in window) {
+            setTimeout(() => {
+                app.showNotification('💡 Touch debugging enabled! Try the red "Touch Test" button or tap the flashcard. Check console for logs.', 'info');
+            }, 2000);
+            
+            // Add debug button temporarily
+            const debugBtn = document.createElement('button');
+            debugBtn.textContent = 'Debug Flip';
+            debugBtn.className = 'btn btn-primary';
+            debugBtn.style.position = 'fixed';
+            debugBtn.style.top = '10px';
+            debugBtn.style.right = '10px';
+            debugBtn.style.zIndex = '9999';
+            debugBtn.addEventListener('click', () => {
+                console.log('Debug flip button clicked');
+                app.flipCard();
+            });
+            document.body.appendChild(debugBtn);
+            
+                         // Test CSS classes
+             const testBtn = document.createElement('button');
+             testBtn.textContent = 'Test CSS';
+             testBtn.className = 'btn btn-secondary';
+             testBtn.style.position = 'fixed';
+             testBtn.style.top = '60px';
+             testBtn.style.right = '10px';
+             testBtn.style.zIndex = '9999';
+             testBtn.addEventListener('click', () => {
+                 const flashcard = document.getElementById('flashcard');
+                 console.log('Flashcard classes:', flashcard.classList.toString());
+                 console.log('Has flipped class:', flashcard.classList.contains('flipped'));
+                 flashcard.classList.toggle('flipped');
+                 console.log('After toggle, classes:', flashcard.classList.toString());
+             });
+             document.body.appendChild(testBtn);
+             
+             // Create a dummy touch-test element
+             const touchTest = document.createElement('div');
+             touchTest.textContent = 'Touch Test';
+             touchTest.style.position = 'fixed';
+             touchTest.style.top = '110px';
+             touchTest.style.right = '10px';
+             touchTest.style.width = '100px';
+             touchTest.style.height = '50px';
+             touchTest.style.backgroundColor = 'red';
+             touchTest.style.color = 'white';
+             touchTest.style.display = 'flex';
+             touchTest.style.alignItems = 'center';
+             touchTest.style.justifyContent = 'center';
+             touchTest.style.zIndex = '9999';
+             touchTest.addEventListener('touchstart', () => {
+                 console.log('Touch test: touchstart');
+             });
+             touchTest.addEventListener('touchend', () => {
+                 console.log('Touch test: touchend');
+                 app.flipCard();
+             });
+             document.body.appendChild(touchTest);
+        }
     
-    // Make app globally accessible for debugging
-    window.flashcardApp = app;
+            // Make app globally accessible for debugging
+        window.flashcardApp = app;
+        
+        // Global test function
+        window.testFlip = () => {
+            console.log('Testing flip from global function');
+            app.flipCard();
+        };
+        
+                 // Add alert instruction for users
+         console.log('🎯 Touch debugging enabled! Try:');
+         console.log('1. Tap the red "Touch Test" button');
+         console.log('2. Tap the "Debug Flip" button');
+         console.log('3. Try tapping the flashcard');
+         console.log('4. Run window.testFlip() in console');
+         console.log('5. Check console for touch events');
+         
+         // Final test: Add a simple touch area
+         const touchArea = document.createElement('div');
+         touchArea.innerHTML = '👆 TAP ME TO FLIP';
+         touchArea.style.position = 'fixed';
+         touchArea.style.bottom = '20px';
+         touchArea.style.left = '20px';
+         touchArea.style.width = '200px';
+         touchArea.style.height = '60px';
+         touchArea.style.backgroundColor = 'green';
+         touchArea.style.color = 'white';
+         touchArea.style.display = 'flex';
+         touchArea.style.alignItems = 'center';
+         touchArea.style.justifyContent = 'center';
+         touchArea.style.borderRadius = '10px';
+         touchArea.style.fontSize = '14px';
+         touchArea.style.fontWeight = 'bold';
+         touchArea.style.zIndex = '9999';
+         touchArea.style.touchAction = 'manipulation';
+         touchArea.addEventListener('touchstart', (e) => {
+             console.log('Green area touched');
+             e.preventDefault();
+             app.flipCard();
+         });
+         document.body.appendChild(touchArea);
     
 
 });
